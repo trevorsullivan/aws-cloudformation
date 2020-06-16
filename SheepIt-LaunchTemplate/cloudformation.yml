@@ -1,0 +1,31 @@
+Parameters:
+  SubnetId:
+    Type: String
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-09dd2e08d601bff67
+Resources:
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties: 
+      LaunchTemplateData:
+        ImageId: !Ref ImageId
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            DeleteOnTermination: true
+            SubnetId: !Ref SubnetId
+        InstanceType: t3.2xlarge
+        UserData: !Base64 |
+          #!/bin/bash
+          sudo apt update && sudo apt-get upgrade --yes && sudo apt-get install openjdk-14-jdk --yes
+
+          export SHEEPIT_USERNAME='PUTYOURUSERNAMEHERE'
+          # Kind of like a password, but doesn't require security. Can't be used to login to SheepIt website.
+          export SHEEPIT_PUBLIC_KEY='PUTYOURPUBLICKEYHERE'
+
+          # Download the SheepIt Java client
+          export SHEEPIT_JAR_FILENAME='sheepit-client-6.1747.0.jar'
+          wget https://www.sheepit-renderfarm.com/media/applet/$SHEEPIT_JAR_FILENAME
+
+          java -jar $SHEEPIT_JAR_FILENAME -ui text -login $SHEEPIT_USERNAME -password $SHEEPIT_PUBLIC_KEY
+      LaunchTemplateName: SheepIt2
